@@ -35,17 +35,34 @@ int main()
   PID pid_steer;
   PID pid_speed;
   // TODO: Initialize the pid variable.
-  double Kp_steer0 = 0.002;
-  double Ki_steer0 = 0.0001;
-  double Kd_steer0 = 0.0;
-  pid_steer.Init(Kp_steer0, Ki_steer0, Kd_steer0);
-  pid_steer.set_error_max(1.0);
+  static const double Kp_steer0 = 0.02;
+  static const double Ki_steer0 = 2e-4 ;
+  static const double Kd_steer0 = 0.0;
 
-  double Kp_speed = 0.1;
-  double Ki_speed = 0.00001;
+  static const double Kp_steer1 = Kp_steer0 * 2.0;
+  static const double Ki_steer1 = 1e-4;
+  static const double Kd_steer1 = 0.0;
+
+  static const double Kp_steer2 = Kp_steer0 * 4.0  ;
+  static const double Ki_steer2 = 1e-6 * 0;
+  static const double Kd_steer2 = 0.50  ;
+
+  static const double Kp_steer3 = Kp_steer0 * 8.0 ;
+  static const double Ki_steer3 = 1e-6 * 0;
+  static const double Kd_steer3 = 1.0;
+
+  static const double limit0 = 0.3;
+  static const double limit1 = 0.8;
+  static const double limit2 = 1.0;
+
+  pid_steer.Init(Kp_steer0, Ki_steer0, Kd_steer0);
+  pid_steer.set_error_lim(1.0, -1.0);
+
+  double Kp_speed = 1.0;
+  double Ki_speed = 1e-4;
   double Kd_speed = 0.0;
   pid_speed.Init(Kp_speed, Ki_speed, Kd_speed);
-  pid_speed.set_error_max(50.0);
+  pid_speed.set_error_lim(0.5, -0.5);
 
   h.onMessage([&pid_steer,&pid_speed](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -69,24 +86,37 @@ int main()
           * NOTE: Feel free to play around with the throttle and speed. Maybe use
           * another PID controller to control the speed!
           */
+          PID * pid_steer_p = &pid_steer;
+          if(fabs(cte)<=limit0){
+            pid_steer_p->setKp(Kp_steer0)->setKi(Ki_steer0)->setKd(Kd_steer0);
+          }
+          else if(fabs(cte)<=limit1){
+            pid_steer_p->setKp(Kp_steer1)->setKi(Ki_steer1)->setKd(Kd_steer1);
+          }
+          else if(fabs(cte)<=limit2){
+            pid_steer_p->setKp(Kp_steer2)->setKi(Ki_steer2)->setKd(Kd_steer2);
+          }
+          else{
+            pid_steer_p->setKp(Kp_steer3)->setKi(Ki_steer3)->setKd(Kd_steer3);
+          }
           pid_steer.UpdateError(cte);
           steer_value = -pid_steer.TotalError();
 
-          double speed_target = 10;
-          if(fabs(steer_value)>0.2)
-            speed_target = 10;
+          double speed_target = 35;
+          if(fabs(steer_value)>0.3)
+            speed_target = 25;
 
           pid_speed.UpdateError(speed_target-speed);
           double throttle = pid_speed.TotalError();
 
           // DEBUG
-          std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
+          std::cout << "CTE: " << cte << " Steering Value: " << steer_value <<"  Throttle:" << throttle << std::endl;
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
           msgJson["throttle"] = throttle;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-          std::cout << msg << std::endl;
+          //std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }
       } else {
