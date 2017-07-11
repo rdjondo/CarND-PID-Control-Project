@@ -17,9 +17,15 @@ public:
   double Ki;
   double Kd;
 
-  /*
-  * Constructor
-  */
+ /*
+ * Total error and Anti windup Limit
+ */
+ double error_max = 1.0;
+
+
+    /*
+    * Constructor
+    */
   PID();
 
   /*
@@ -41,6 +47,18 @@ public:
   * Calculate the total PID error.
   */
   double TotalError();
+
+  /*
+   * Set Error Max
+   */
+  void set_error_max(double i_error_max);
+
+  PID* setKp(double Kp);
+
+  PID* setKi(double Ki);
+
+  PID* setKd(double Kd);
+
 };
 
 #endif /* PID_H */
