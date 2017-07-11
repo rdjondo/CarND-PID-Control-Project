@@ -7,7 +7,7 @@ public:
   * Errors
   */
   double p_error;
-  double i_error;
+  double i_error = 0.0;
   double d_error;
 
   /*
@@ -17,10 +17,16 @@ public:
   double Ki;
   double Kd;
 
+  double last_cte = 0.0;
+  double last_d_error = 0.0;
+
+  std::chrono::milliseconds last_time;
+
  /*
  * Total error and Anti windup Limit
  */
  double error_max = 1.0;
+ double error_min = -1.0;
 
 
     /*
@@ -49,9 +55,9 @@ public:
   double TotalError();
 
   /*
-   * Set Error Max
+   * Set Error Max and Min
    */
-  void set_error_max(double i_error_max);
+  void set_error_lim(double error_max, double error_min);
 
   PID* setKp(double Kp);
 

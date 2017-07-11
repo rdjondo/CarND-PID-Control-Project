@@ -44,12 +44,12 @@ int main()
   static const double Kd_steer1 = 0.0;
 
   static const double Kp_steer2 = Kp_steer0 * 4.0  ;
-  static const double Ki_steer2 = 1e-6 * 0;
-  static const double Kd_steer2 = 0.50  ;
+  static const double Ki_steer2 = 1e-4;
+  static const double Kd_steer2 = 0.050  ;
 
-  static const double Kp_steer3 = Kp_steer0 * 8.0 ;
+  static const double Kp_steer3 = Kp_steer0 * 4.0 ;
   static const double Ki_steer3 = 1e-6 * 0;
-  static const double Kd_steer3 = 1.0;
+  static const double Kd_steer3 = 0.10;
 
   static const double limit0 = 0.3;
   static const double limit1 = 0.8;
@@ -62,7 +62,7 @@ int main()
   double Ki_speed = 1e-4;
   double Kd_speed = 0.0;
   pid_speed.Init(Kp_speed, Ki_speed, Kd_speed);
-  pid_speed.set_error_lim(0.5, -0.5);
+  pid_speed.set_error_lim(0.6, -0.6);
 
   h.onMessage([&pid_steer,&pid_speed](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -102,9 +102,9 @@ int main()
           pid_steer.UpdateError(cte);
           steer_value = -pid_steer.TotalError();
 
-          double speed_target = 35;
+          double speed_target = 50;
           if(fabs(steer_value)>0.3)
-            speed_target = 25;
+            speed_target = 30;
 
           pid_speed.UpdateError(speed_target-speed);
           double throttle = pid_speed.TotalError();
